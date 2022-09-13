@@ -88,7 +88,7 @@ int main(void)
     scrollok(stdscr, FALSE);
 
     for (int x = COLS - 1; ; --x) {
-        if (display_animation(&train_animation, x) != 0) {
+        if (display_animation(&__train_animation, x) != 0) {
             break;
         }
         getch();
