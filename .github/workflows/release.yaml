@@ -1,0 +1,91 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+
+      - name: Install fpm
+        run: gem install --no-document fpm
+
+      - name: Get the version
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+
+      - name: Create a deb
+        run: |
+          make deb RELEASE=1 VERSION=$VERSION
+          DEB_FILE=`find $PWD -maxdepth 1 -name '*.deb'`
+          echo "DEB_FILE=$DEB_FILE" >> $GITHUB_ENV
+          echo "DEB_NAME=`basename $DEB_FILE`" >> $GITHUB_ENV
+
+      - name: Create a rpm
+        run: |
+          make rpm RELEASE=1 VERSION=$VERSION
+          RPM_FILE=`find $PWD -maxdepth 1 -name '*.rpm'`
+          echo "RPM_FILE=$RPM_FILE" >> $GITHUB_ENV
+          echo "RPM_NAME=`basename $RPM_FILE`" >> $GITHUB_ENV
+
+      - name: Create a tar.gz
+        run: |
+          make dist RELEASE=1 VERSION=$VERSION
+          TAR_FILE=`find $PWD/.build/release -maxdepth 1 -name '*.tar.gz'`
+          echo "TAR_FILE=$TAR_FILE" >> $GITHUB_ENV
+          echo "TAR_NAME=`basename $TAR_FILE`" >> $GITHUB_ENV
+
+
+      - name: Create github release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload DEB
+        id: upload-release-deb
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.DEB_FILE }}
+          asset_name: ${{ env.DEB_NAME }}
+          asset_content_type: application/zip
+
+      - name: Upload RPM
+        id: upload-release-rpm 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.RPM_FILE }}
+          asset_name: ${{ env.RPM_NAME }}
+          asset_content_type: application/zip
+
+      - name: Upload archive
+        id: upload-release-tar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.TAR_FILE }}
+          asset_name: ${{ env.TAR_NAME }}
+          asset_content_type: application/zip
+
