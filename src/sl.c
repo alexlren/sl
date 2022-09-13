@@ -126,15 +126,13 @@ static int start_animation(struct sl_options *options)
     case 0:
         usec = SPEED_MODE_0;
         break;
-    case 1:
-        usec = SPEED_MODE_1;
-        break;
     case 2:
         usec = SPEED_MODE_2;
         break;
     default:
-        fprintf(stderr, ERR_NARG_FMT, "-s", 2);
-        return EXIT_FAILURE;
+    case 1:
+        usec = SPEED_MODE_1;
+        break;
     }
 
     if (options->n < 0) {
@@ -142,10 +140,6 @@ static int start_animation(struct sl_options *options)
         srand(time(NULL));
         selected = rand() % ANIMATION_COUNT;
     } else {
-        if (options->n >= ANIMATION_COUNT) {
-            fprintf(stderr, ERR_NARG_FMT, "-n", ANIMATION_COUNT - 1);
-            return EXIT_FAILURE;
-        }
         selected = options->n;
     }
     anim = __animations_list[selected];
@@ -177,6 +171,7 @@ static int start_animation(struct sl_options *options)
 int main(int argc, char **argv)
 {
     int opt;
+    char *invalid_digits = NULL;
     struct sl_options options = {
         .n = -1,
         .speed_mode = DEFAULT_SPEED_MODE,
@@ -187,10 +182,18 @@ int main(int argc, char **argv)
     while ((opt = getopt(argc, argv, OPTSTR)) != EOF) {
         switch (opt) {
         case 'n':
-            options.n = (int)strtoul(optarg, NULL, 10);
+            options.n = (int)strtoul(optarg, &invalid_digits, 10);
+            if (optarg == invalid_digits || options.n < 0 || options.n > ANIMATION_COUNT) {
+                fprintf(stderr, ERR_NARG_FMT, "-n", ANIMATION_COUNT - 1);
+                return EXIT_FAILURE;
+            }
             break;
         case 's':
-            options.speed_mode = (int)strtoul(optarg, NULL, 10);
+            options.speed_mode = (int)strtoul(optarg, &invalid_digits, 10);
+            if (optarg == invalid_digits || options.speed_mode < 0 || options.speed_mode > 2) {
+                fprintf(stderr, ERR_NARG_FMT, "-s", 2);
+                return EXIT_FAILURE;
+            }
             break;
         case 'v':
             /* VERSION should be passed at compile time */
