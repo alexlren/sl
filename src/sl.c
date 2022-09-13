@@ -9,8 +9,9 @@
 
 #include "generated/anims.h"
 
-#define OPTSTR "n:hv"
+#define OPTSTR "n:s:hv"
 #define USAGE_FMT  "Usage: %s [-n N] [-v] [-h]\n"
+#define ERR_NARG_FMT "Error: invalid %s option, N should be in [0-%d]\n"
 #define USAGE_DESC                                                      \
     "A cruel program made to punish users who mispell ls\n\n"           \
     "Available options:\n"                                              \
@@ -19,8 +20,14 @@
     "\t-v\n"                                                            \
     "\t\tShow the current version\n"                                    \
     "\t-n N\n"                                                          \
-    "\t\tSelect the Nth animation (instead of a random one)\n"
+    "\t\tSelect the Nth animation (instead of a random one)\n"          \
+    "\t-s mode\n"                                                       \
+    "\t\tSelect the speed mode: 0, 1, 2 (default = 1)\n"
 
+# define SPEED_MODE_0 20000
+# define SPEED_MODE_1 40000
+# define SPEED_MODE_2 100000
+# define DEFAULT_SPEED_MODE 1
 
 extern int errno;
 extern char *optarg;
@@ -29,6 +36,8 @@ extern int opterr, optind;
 struct sl_options {
     /* Shows the nth animation */
     int n;
+    /* Speed mode 1, 2 or 3 */
+    int speed_mode;
 };
 
 static void usage(const char *progname) {
@@ -110,19 +119,36 @@ static int display_animation(struct animation *anim, int x)
 static int start_animation(struct sl_options *options)
 {
     struct animation *anim = NULL;
+    int selected;
+    unsigned int usec;
+
+    switch (options->speed_mode) {
+    case 0:
+        usec = SPEED_MODE_0;
+        break;
+    case 1:
+        usec = SPEED_MODE_1;
+        break;
+    case 2:
+        usec = SPEED_MODE_2;
+        break;
+    default:
+        fprintf(stderr, ERR_NARG_FMT, "-s", 2);
+        return EXIT_FAILURE;
+    }
 
     if (options->n < 0) {
         /* Select a random animation */
         srand(time(NULL));
-        int r = rand() % ANIMATION_COUNT;
-        anim = __animations_list[r];
+        selected = rand() % ANIMATION_COUNT;
     } else {
         if (options->n >= ANIMATION_COUNT) {
-            fprintf(stderr, "Error: invalid -n option, N should be in [0-%d]\n", ANIMATION_COUNT - 1);
+            fprintf(stderr, ERR_NARG_FMT, "-n", ANIMATION_COUNT - 1);
             return EXIT_FAILURE;
         }
-        anim = __animations_list[options->n];
+        selected = options->n;
     }
+    anim = __animations_list[selected];
 
     initscr();
 #ifdef NDEBUG
@@ -140,7 +166,7 @@ static int start_animation(struct sl_options *options)
         }
         getch();
         refresh();
-        usleep(40000);
+        usleep(usec);
     }
     mvcur(0, COLS - 1, LINES - 1, 0);
     endwin();
@@ -151,7 +177,10 @@ static int start_animation(struct sl_options *options)
 int main(int argc, char **argv)
 {
     int opt;
-    struct sl_options options = { .n = -1 };
+    struct sl_options options = {
+        .n = -1,
+        .speed_mode = DEFAULT_SPEED_MODE,
+    };
 
     opterr = 0;
 
@@ -159,6 +188,9 @@ int main(int argc, char **argv)
         switch (opt) {
         case 'n':
             options.n = (int)strtoul(optarg, NULL, 10);
+            break;
+        case 's':
+            options.speed_mode = (int)strtoul(optarg, NULL, 10);
             break;
         case 'v':
             /* VERSION should be passed at compile time */
