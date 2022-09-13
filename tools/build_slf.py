@@ -1,9 +1,12 @@
+import argparse
 import os
 import re
+import sys
 from os import path
 
 # config
-OUTPUT_DIR = "generated"
+DEFAULT_ROOT_FILENAME = "anims.h"
+DEFAULT_OUTPUT_FILENAME = "out.h"
 
 # templates
 HEADER_TMPL = """#ifndef {name_upper}_H
@@ -50,13 +53,38 @@ static struct animation_frame_update_list __{name}_fru_list__[FRAME_COUNT - 1] =
 {frame_updates_list_rows}
 }};
 """
+ROOT_HEADER_INCLUDES_TMPL = """# include \"{header_filename}\""""
+ROOT_HEADER_TMPL = """#ifndef {name_upper}
+# define {name_upper}
+
+{header_includes}
+
+# define ANIMATION_COUNT {animation_count}
+
+static struct animation *__animations_list[ANIMATION_COUNT] = {{
+{animation_names}
+}};
+
+#endif
+"""
 
 def escape_str(s):
     return s.replace('\\', '\\\\').replace('"', '\\"')
 
+
 def read_frame(filename):
     with open(filename, 'r') as f:
         return f.read()
+
+
+def write_header(header, filename):
+    with open(filename, 'w+') as f:
+        f.write(header)
+
+
+def normalize_name(name):
+    return re.sub('[^a-z]', '_', name.lower())
+
 
 def retrieve_frames_from_slf(dirname):
     lsdir = sorted(os.listdir(dirname))
@@ -71,6 +99,7 @@ def retrieve_frames_from_slf(dirname):
         frames.append(read_frame(f'{dirname}/{slf}'))
         i += 1
     return frames
+
 
 def find_diffs(orig_row, frame_row, y):
     frame_len = len(frame_row)
@@ -113,8 +142,6 @@ def find_frame_updates(frames):
         all_diffs.append(frame_updates)
     return all_diffs
 
-def normalize_name(name):
-    return re.sub('[^a-z]', '_', name.lower())
 
 def build_frame_list(name, frame_count, all_frame_updates):
     name_upper = name.upper()
@@ -145,16 +172,18 @@ def build_frame_list(name, frame_count, all_frame_updates):
     )
     return frame_updates_list
 
-def build_headers_from_frames(dirname):
+
+def build_header_from_frames(name, dirname):
     frames = retrieve_frames_from_slf(dirname)
     orig_frame = frames[0]
     orig_frame_rows = [row + ' ' for row in orig_frame.split('\n')]
-    orig_frame_rows += ' ' # last row is an empty line
+    width = max((len(row) for row in orig_frame_rows))
+    orig_frame_rows.append(' ') # last row is an empty line
+    # pad lines with space
+    orig_frame_rows = [row.ljust(width, ' ') for row in orig_frame_rows]
 
-    name = normalize_name(dirname)
     name_upper = name.upper()
     height = len(orig_frame_rows)
-    width = max((len(row) for row in orig_frame_rows))
     frame_count = len(frames)
     all_frame_updates = find_frame_updates(frames)
     orig_frame_rows = ',\n'.join(
@@ -171,7 +200,79 @@ def build_headers_from_frames(dirname):
         frame_updates_list=frame_updates_list,
     )
 
-    print(header)
+    return header
 
 
-build_headers_from_frames('train')
+def cmd_build(args):
+    try:
+        name = normalize_name(path.basename(args.anim_dir))
+        header = build_header_from_frames(name, args.anim_dir)
+        write_header(header, args.output)
+    except IOError as err:
+        print(err)
+        return err.errno
+    return 0
+
+
+def cmd_export(args):
+    ls_dir = os.listdir(args.anim_dir)
+    anim_names = []
+    for anim in ls_dir:
+        if not path.isdir(path.join(args.anim_dir, anim)):
+            continue
+        anim_names.append(path.basename(anim))
+    header_includes = (
+        ROOT_HEADER_INCLUDES_TMPL.format(
+            header_filename=f'{name}.h',
+        )
+        for name in anim_names
+    )
+    header_includes = '\n'.join(header_includes)
+    name = normalize_name(path.basename(args.output))
+    name_upper = name.upper()
+    animation_names = '\n,'.join(f'&__{name}_animation' for name in anim_names)
+    root_header = ROOT_HEADER_TMPL.format(
+        name_upper=name_upper,
+        header_includes=header_includes,
+        animation_names=animation_names,
+        animation_count=len(anim_names),
+    )
+    write_header(root_header, args.output)
+
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    cmdparsers = parser.add_subparsers(dest='command')
+
+    build_parser = cmdparsers.add_parser('build', help='build a header from an animation')
+
+    build_parser.add_argument(
+        '-o', '--output', type=str, default=DEFAULT_OUTPUT_FILENAME,
+        help='output file name',
+    )
+    build_parser.add_argument(
+        'anim_dir', type=str,
+        help='path to an animation directory that contains *.slf files',
+    )
+    build_parser.set_defaults(cmd=cmd_build)
+
+    export_parser = cmdparsers.add_parser('export_root', help='build a root header from animation headers')
+
+    export_parser.add_argument(
+        '-o', '--output', type=str, default=DEFAULT_ROOT_FILENAME,
+        help='output file name',
+    )
+    export_parser.add_argument(
+        'anim_dir', type=str,
+        help='directory that contains animation headers',
+    )
+    export_parser.set_defaults(cmd=cmd_export)
+    args = parser.parse_args()
+
+    return args.cmd(args)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
