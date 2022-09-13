@@ -9,13 +9,15 @@
 
 #include "generated/anims.h"
 
-#define OPTSTR "n:h"
-#define USAGE_FMT  "Usage: %s [-n N] [-h]\n"
+#define OPTSTR "n:hv"
+#define USAGE_FMT  "Usage: %s [-n N] [-v] [-h]\n"
 #define USAGE_DESC                                                      \
     "A cruel program made to punish users who mispell ls\n\n"           \
     "Available options:\n"                                              \
     "\t-h\n"                                                            \
     "\t\tDisplay this help\n"                                           \
+    "\t-v\n"                                                            \
+    "\t\tShow the current version\n"                                    \
     "\t-n N\n"                                                          \
     "\t\tSelect the Nth animation (instead of a random one)\n"
 
@@ -158,6 +160,10 @@ int main(int argc, char **argv)
         case 'n':
             options.n = (int)strtoul(optarg, NULL, 10);
             break;
+        case 'v':
+            /* VERSION should be passed at compile time */
+            fprintf(stderr, "v%s\n", VERSION);
+            exit(0);
         case 'h':
         default:
             usage(basename(argv[0]));
