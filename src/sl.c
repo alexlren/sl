@@ -2,8 +2,10 @@
 #include <signal.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
+#include <stdlib.h>
 
-#include "train.h"
+#include "generated/anims.h"
 
 static char get_frame_char(struct animation *anim, int x, int y, int frame)
 {
@@ -87,8 +89,12 @@ int main(void)
     leaveok(stdscr, TRUE);
     scrollok(stdscr, FALSE);
 
+    srand(time(NULL));
+    int r = rand() % ANIMATION_COUNT;
+    struct animation *anim = __animations_list[r];
+
     for (int x = COLS - 1; ; --x) {
-        if (display_animation(&__train_animation, x) != 0) {
+        if (display_animation(anim, x) != 0) {
             break;
         }
         getch();
