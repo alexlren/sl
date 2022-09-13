@@ -164,7 +164,7 @@ def build_frame_list(name, frame_count, all_frame_updates):
         fr_update_list_row = FRAME_UPDATES_LIST_ROW_TMPL.format(name=name, n=n + 1, fru_len=len(fr))
         frame_updates_list_rows.append(fr_update_list_row)
     frame_updates = '\n'.join(frame_updates)
-    frame_updates_list_rows = ',\n'.join(frame_updates_list_rows)
+    frame_updates_list_rows = '\n,'.join(frame_updates_list_rows)
     frame_updates_list = FRAME_UPDATES_LIST_TMPL.format(
         name=name,
         name_upper=name_upper,
