@@ -14,20 +14,20 @@ HEADER_TMPL = """#ifndef {name_upper}_H
 
 # include "animation.h"
 
-# define FRAME_WIDTH                    {width}
-# define FRAME_HEIGHT                   {height}
-# define FRAME_COUNT                    {frame_count}
+# define __{name_upper}_FRAME_WIDTH     {width}
+# define __{name_upper}_FRAME_HEIGHT    {height}
+# define __{name_upper}_FRAME_COUNT     {frame_count}
 
-static const char *__{name}_orig_frame[FRAME_HEIGHT] = {{
+static const char *__{name}_orig_frame[__{name_upper}_FRAME_HEIGHT] = {{
 {orig_frame_rows}
 }};
 
 {frame_updates_list}
 
 static struct animation __{name}_animation = {{
-    .width = FRAME_WIDTH,
-    .height = FRAME_HEIGHT,
-    .frame_count = FRAME_COUNT,
+    .width = __{name_upper}_FRAME_WIDTH,
+    .height = __{name_upper}_FRAME_HEIGHT,
+    .frame_count = __{name_upper}_FRAME_COUNT,
     .orig_frame = __{name}_orig_frame,
     .frames = (struct animation_frame_update_list *)__{name}_fru_list__,
 }};
@@ -49,7 +49,7 @@ static struct animation_frame_update __{name}_fu_list_{n}__[__{name_upper}_UPDAT
 """
 FRAME_UPDATES_LIST_ROW_TMPL = """{{ .len = {fru_len}, .updates = (struct animation_frame_update *)&__{name}_fu_list_{n}__ }}"""
 FRAME_UPDATES_LIST_TMPL = """{frame_updates}
-static struct animation_frame_update_list __{name}_fru_list__[FRAME_COUNT - 1] = {{
+static struct animation_frame_update_list __{name}_fru_list__[__{name_upper}_FRAME_COUNT - 1] = {{
 {frame_updates_list_rows}
 }};
 """
@@ -167,6 +167,7 @@ def build_frame_list(name, frame_count, all_frame_updates):
     frame_updates_list_rows = ',\n'.join(frame_updates_list_rows)
     frame_updates_list = FRAME_UPDATES_LIST_TMPL.format(
         name=name,
+        name_upper=name_upper,
         frame_updates=frame_updates,
         frame_updates_list_rows=frame_updates_list_rows,
     )
