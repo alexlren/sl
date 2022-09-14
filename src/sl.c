@@ -10,7 +10,7 @@
 #include "generated/anims.h"
 
 #define OPTSTR "n:s:hv"
-#define USAGE_FMT  "Usage: %s [-n N] [-v] [-h]\n"
+#define USAGE_FMT  "Usage: %s [-n N] [-s M] [-v] [-h]\n"
 #define ERR_NARG_FMT "Error: invalid %s option, N should be in [0-%d]\n"
 #define USAGE_DESC                                                      \
     "A cruel program made to punish users who mispell ls\n\n"           \
@@ -21,7 +21,7 @@
     "\t\tShow the current version\n"                                    \
     "\t-n N\n"                                                          \
     "\t\tSelect the Nth animation (instead of a random one)\n"          \
-    "\t-s mode\n"                                                       \
+    "\t-s M\n"                                                          \
     "\t\tSelect the speed mode: 0, 1, 2 (default = 1)\n"
 
 # define SPEED_MODE_0 20000
