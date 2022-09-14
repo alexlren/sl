@@ -28,7 +28,7 @@ CC := gcc
 CFLAGS := -Wall -Werror -I$(SRC_DIR) -DVERSION="\"$(VERSION)\""
 LDFLAGS := -lncurses
 DEBUG_CFLAGS := -O0 -g -ggdb
-RELEASE_CFLAG := -O2 -DNDEBUG
+RELEASE_CFLAGS := -O2 -DNDEBUG
 SRCS := sl.c
 HDRS := animation.h train.h sl.h
 
