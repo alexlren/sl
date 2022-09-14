@@ -15,7 +15,7 @@ After installing the package, you should be able to type `sl` and at least see t
 ### From sources
 
 Requirements:
-- ncurses
+- ncurses >= 6
 
 Download the [sources](https://github.com/alexlren/codetest/releases/) for a given release, and simply type:
 

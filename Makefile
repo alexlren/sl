@@ -16,7 +16,7 @@ FPM_OPTS = -s dir \
 	--maintainer "$(MAINTAINER)" \
 	--description "$(DESCRIPTION)" \
 	-a $(ARCH) \
-	--depends ncurses
+	--depends 'ncurses >= 6'
 
 BUILD_DIR ?= .build
 SRC_DIR := src
