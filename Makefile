@@ -109,6 +109,6 @@ clean:
 distclean: clean
 	rm -rf $(BUILD_DIR)
 
-.PHONY: clean distclean animation_headers dist install
+.PHONY: clean distclean animation_headers dist install rpm deb dist lint
 
 MKDIR_P ?= mkdir -p
