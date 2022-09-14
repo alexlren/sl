@@ -32,7 +32,7 @@ LDFLAGS := -lncurses
 DEBUG_CFLAGS := -O0 -g -ggdb
 RELEASE_CFLAG := -O2 -DNDEBUG
 SRCS := sl.c
-HDRS := animation.h train.h
+HDRS := animation.h train.h sl.h
 
 RELEASE ?= 0
 ifeq ($(RELEASE), 1)

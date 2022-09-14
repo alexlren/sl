@@ -7,6 +7,7 @@
 #include <libgen.h>
 #include <errno.h>
 
+#include "sl.h"
 #include "generated/anims.h"
 
 #define OPTSTR "n:s:hv"
@@ -29,10 +30,6 @@
 # define SPEED_MODE_2 100000
 # define DEFAULT_SPEED_MODE 1
 
-extern int errno;
-extern char *optarg;
-extern int opterr, optind;
-
 struct sl_options {
     /* Shows the nth animation */
     int n;
@@ -40,7 +37,8 @@ struct sl_options {
     int speed_mode;
 };
 
-static void usage(const char *progname) {
+static void usage(const char *progname)
+{
     fprintf(stderr, USAGE_FMT, progname);
     fprintf(stderr, USAGE_DESC);
     exit(EXIT_FAILURE);
@@ -62,10 +60,8 @@ static char get_frame_char(struct animation *anim, int x, int y, int frame)
             }
         }
     }
-    /*
-       if we're displaying the frame 0 or if there is no changes here
-       we can just return the original frame char
-    */
+    /* if we're displaying the frame 0 or if there is no changes here */
+    /* we can just return the original frame char */
     return anim->orig_frame[y][x];
 }
 
@@ -79,7 +75,7 @@ static int display_row(struct animation *anim, int y, int x, int y_offset, int f
     /* If the animation exceeds the left side, start with an offset */
     if (x < 0) {
         if (-x >= anim->width) {
-            return ERR;
+            return -1;
         }
         i += -x;
         x = 0;
@@ -88,14 +84,14 @@ static int display_row(struct animation *anim, int y, int x, int y_offset, int f
     c = get_frame_char(anim, i, y, frame);
     for (; c != '\0'; ++i, ++x) {
         if (mvaddch(y + y_offset, x, c) == ERR) {
-            return ERR;
+            return -1;
         }
         c = get_frame_char(anim, i, y, frame);
     }
     /* Clean up remaining space */
     for (; i <= anim->width; ++i) {
         if (mvaddch(y + y_offset, x, ' ') == ERR) {
-            return ERR;
+            return -1;
         }
     }
 
@@ -104,7 +100,7 @@ static int display_row(struct animation *anim, int y, int x, int y_offset, int f
 
 static int display_animation(struct animation *anim, int x)
 {
-    if (x < - anim->width) {
+    if (x < -anim->width) {
         /* The animation has been displayed entirely */
         return -1;
     }
