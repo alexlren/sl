@@ -34,6 +34,8 @@ RELEASE_CFLAG := -O2 -DNDEBUG
 SRCS := sl.c
 HDRS := animation.h train.h sl.h
 
+LINTER := $(TOOLS_DIR)/lint.sh
+
 RELEASE ?= 0
 ifeq ($(RELEASE), 1)
     CFLAGS += $(RELEASE_CFLAGS)
@@ -78,6 +80,9 @@ install: $(TARGET_BUILD_DIR)/$(TARGET)
 $(ARCHIVE): RELEASE=1
 $(ARCHIVE): $(TARGET_BUILD_DIR)/$(TARGET)
 	tar -C $(TARGET_BUILD_DIR) -czvf $@ $(TARGET)
+
+lint: $(addprefix $(SRC_DIR)/, $(SRCS))
+	$(LINTER) $<
 
 rpm: DESTDIR=$TMP_INSTALLDIR
 rpm:
