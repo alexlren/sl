@@ -15,9 +15,7 @@ FPM_OPTS = -s dir \
 	--prefix /usr \
 	--maintainer "$(MAINTAINER)" \
 	--description "$(DESCRIPTION)" \
-	-a $(ARCH) \
-	--depends 'ncurses >= 6'
-
+	-a $(ARCH)
 BUILD_DIR ?= .build
 SRC_DIR := src
 ANIMS_DIR := animations
@@ -90,6 +88,7 @@ rpm:
 	make install DESTDIR=$(TMP_INSTALL_DIR)
 	fpm -s dir -t rpm \
 		-p "$(PKG_RPM)" \
+		--depends 'ncurses >= 6' \
 		$(FPM_OPTS)
 
 deb: DESTDIR=$TMP_INSTALLDIR
@@ -98,6 +97,7 @@ deb:
 	make install DESTDIR=$(TMP_INSTALL_DIR)
 	fpm -s dir -t deb \
 		-p "$(PKG_DEB)" \
+		--depends 'libncurses6 >= 6' \
 		$(FPM_OPTS)
 
 dist: $(ARCHIVE)
