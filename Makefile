@@ -6,6 +6,7 @@ ARCH ?= x86_64
 DESCRIPTION := A cruel program made to punish users who mispell ls. Instead of showing the the contents of the current directory as one would expect from ls, sl displays a loooooong random animation crossing the terminal.
 PKG_DEB = $(TARGET)_$(VERSION)-$(ITERATION)_$(ARCH).deb
 PKG_RPM = $(TARGET)-$(VERSION)-$(ITERATION).$(ARCH).rpm
+PKG_PKG = $(TARGET)-$(VERSION)-$(ITERATION)-$(ARCH).pkg.tar.zst
 TMP_INSTALL_DIR ?= /tmp/$(TARGET)-INSTALL-$(VERSION)-$(ITERATION)
 FPM_OPTS = -s dir \
 	-n $(TARGET) \
@@ -99,6 +100,17 @@ deb:
 		-p "$(PKG_DEB)" \
 		--depends 'libncurses6 >= 6' \
 		$(FPM_OPTS)
+
+pacman: DESTDIR=$TMP_INSTALLDIR
+pacman:
+	@rm -rf $(TMP_INSTALL_DIR)
+	make install DESTDIR=$(TMP_INSTALL_DIR)
+	fpm -s dir -t pacman \
+		-p "$(PKG_PKG)" \
+		--depends ncurses \
+		--after-install $(TOOLS_DIR)/archlinux_postinstall.sh \
+		$(FPM_OPTS)
+
 
 dist: $(ARCHIVE)
 
