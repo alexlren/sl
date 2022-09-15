@@ -37,6 +37,13 @@ jobs:
           echo "RPM_FILE=$RPM_FILE" >> $GITHUB_ENV
           echo "RPM_NAME=`basename $RPM_FILE`" >> $GITHUB_ENV
 
+      - name: Create a pkg.zst
+        run: |
+          make pacman RELEASE=1 VERSION=$VERSION
+          PKG_FILE=`find $PWD -maxdepth 1 -name '*.pkg.zst'`
+          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+          echo "PKG_NAME=`basename $PKG_FILE`" >> $GITHUB_ENV
+
       - name: Create a tar.gz
         run: |
           make dist RELEASE=1 VERSION=$VERSION
@@ -76,6 +83,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.RPM_FILE }}
           asset_name: ${{ env.RPM_NAME }}
+          asset_content_type: application/zip
+
+      - name: Upload Archlinux package
+        id: upload-release-pkg
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.PKG_FILE }}
+          asset_name: ${{ env.PKG_NAME }}
           asset_content_type: application/zip
 
       - name: Upload archive
