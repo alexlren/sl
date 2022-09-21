@@ -179,7 +179,7 @@ int main(int argc, char **argv)
         switch (opt) {
         case 'n':
             options.n = (int)strtoul(optarg, &invalid_digits, 10);
-            if (optarg == invalid_digits || options.n < 0 || options.n > ANIMATION_COUNT) {
+            if (optarg == invalid_digits || options.n < 0 || options.n >= ANIMATION_COUNT) {
                 fprintf(stderr, ERR_NARG_FMT, "-n", ANIMATION_COUNT - 1);
                 return EXIT_FAILURE;
             }
