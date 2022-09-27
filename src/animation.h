@@ -25,8 +25,6 @@ struct animation {
     uint16_t height;
     /* Number of frames */
     uint8_t frame_count;
-    /* Number of updates per frame */
-    uint8_t frame_up_count;
     /* Original frame split in rows */
     const char **orig_frame;
     /* List of frame updates to apply on top of each frame */
