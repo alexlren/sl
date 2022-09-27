@@ -90,3 +90,9 @@ make deb VERSION=1.2.3 RELEASE=1
 ```
 make dist VERSION=1.2.3 RELEASE=1
 ```
+
+### Adding a new animation
+
+Create a directory in animations/ and add the different frames in different files named with their frame number starting from 0 and the `.slf` extension.
+
+Example: if you have 3 frames, you should have `0.slf`, `1.slf` and `2.slf`.
