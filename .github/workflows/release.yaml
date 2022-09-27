@@ -26,21 +26,21 @@ jobs:
       - name: Create a deb
         run: |
           make deb RELEASE=1 VERSION=$VERSION
-          DEB_FILE=`find $PWD -maxdepth 1 -name '*.deb'`
+          DEB_FILE=`make print_path_deb RELEASE=1 VERSION=$VERSION`
           echo "DEB_FILE=$DEB_FILE" >> $GITHUB_ENV
           echo "DEB_NAME=`basename $DEB_FILE`" >> $GITHUB_ENV
 
       - name: Create a rpm
         run: |
           make rpm RELEASE=1 VERSION=$VERSION
-          RPM_FILE=`find $PWD -maxdepth 1 -name '*.rpm'`
+          RPM_FILE=`make print_path_rpm RELEASE=1 VERSION=$VERSION`
           echo "RPM_FILE=$RPM_FILE" >> $GITHUB_ENV
           echo "RPM_NAME=`basename $RPM_FILE`" >> $GITHUB_ENV
 
       - name: Create a pkg.zst
         run: |
           make pacman RELEASE=1 VERSION=$VERSION
-          PKG_FILE=`find $PWD -maxdepth 1 -name '*.pkg.zst'`
+          PKG_FILE=`make print_path_pkg RELEASE=1 VERSION=$VERSION`
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
           echo "PKG_NAME=`basename $PKG_FILE`" >> $GITHUB_ENV
 
@@ -50,7 +50,6 @@ jobs:
           TAR_FILE=`find $PWD/.build/release -maxdepth 1 -name '*.tar.gz'`
           echo "TAR_FILE=$TAR_FILE" >> $GITHUB_ENV
           echo "TAR_NAME=`basename $TAR_FILE`" >> $GITHUB_ENV
-
 
       - name: Create github release
         id: create_release

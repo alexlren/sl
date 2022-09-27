@@ -8,11 +8,11 @@ PKG_DEB = $(TARGET)_$(VERSION)-$(ITERATION)_$(ARCH).deb
 PKG_RPM = $(TARGET)-$(VERSION)-$(ITERATION).$(ARCH).rpm
 PKG_PKG = $(TARGET)-$(VERSION)-$(ITERATION)-$(ARCH).pkg.tar.zst
 TMP_INSTALL_DIR ?= /tmp/$(TARGET)-INSTALL-$(VERSION)-$(ITERATION)
+FPM ?= fpm
 FPM_OPTS = -s dir \
 	-n $(TARGET) \
 	-v $(VERSION) \
 	--iteration $(ITERATION) \
-	-C $(TMP_INSTALL_DIR) \
 	--prefix /usr \
 	--maintainer "$(MAINTAINER)" \
 	--description "$(DESCRIPTION)" \
@@ -83,34 +83,46 @@ $(ARCHIVE): $(TARGET_BUILD_DIR)/$(TARGET)
 lint: $(addprefix $(SRC_DIR)/, $(SRCS))
 	$(LINTER) $<
 
-rpm: DESTDIR=$TMP_INSTALLDIR
-rpm:
-	@rm -rf $(TMP_INSTALL_DIR)
-	make install DESTDIR=$(TMP_INSTALL_DIR)
-	fpm -s dir -t rpm \
-		-p "$(PKG_RPM)" \
-		--depends 'ncurses >= 6' \
-		$(FPM_OPTS)
+deb: $(BUILD_DIR)/$(PKG_DEB)
+rpm: $(BUILD_DIR)/$(PKG_RPM)
+pacman: $(BUILD_DIR)/$(PKG_PKG)
 
-deb: DESTDIR=$TMP_INSTALLDIR
-deb:
-	@rm -rf $(TMP_INSTALL_DIR)
-	make install DESTDIR=$(TMP_INSTALL_DIR)
-	fpm -s dir -t deb \
-		-p "$(PKG_DEB)" \
+print_path_deb:
+	@echo $(PWD)/$(BUILD_DIR)/$(PKG_DEB)
+
+print_path_rpm:
+	@echo $(PWD)/$(BUILD_DIR)/$(PKG_RPM)
+
+print_path_pkg:
+	@echo $(PWD)/$(BUILD_DIR)/$(PKG_PKG)
+
+$(TMP_INSTALL_DIR):
+	@rm -rf $@
+	$(MAKE) install DESTDIR=$@
+
+$(BUILD_DIR)/$(PKG_DEB): $(TMP_INSTALL_DIR)
+	$(FPM) -s dir -t deb \
+		-p "$@" \
 		--depends 'libncurses6 >= 6' \
+		-C $< \
 		$(FPM_OPTS)
 
-pacman: DESTDIR=$TMP_INSTALLDIR
-pacman:
-	@rm -rf $(TMP_INSTALL_DIR)
-	make install DESTDIR=$(TMP_INSTALL_DIR)
-	fpm -s dir -t pacman \
-		-p "$(PKG_PKG)" \
+$(BUILD_DIR)/$(PKG_RPM): $(TMP_INSTALL_DIR)
+	$(FPM) -s dir -t rpm \
+		-p "$@" \
+		--depends 'ncurses >= 6' \
+		-C $< \
+		$(FPM_OPTS)
+
+$(BUILD_DIR)/$(PKG_PKG): $(TMP_INSTALL_DIR)
+	$(FPM) -s dir -t pacman \
+		-p "$@" \
 		--depends ncurses \
 		--after-install $(TOOLS_DIR)/archlinux_postinstall.sh \
+		-C $< \
 		$(FPM_OPTS)
 
+clean_tmp:
 
 dist: $(ARCHIVE)
 
@@ -121,6 +133,6 @@ clean:
 distclean: clean
 	rm -rf $(BUILD_DIR)
 
-.PHONY: clean distclean animation_headers dist install rpm deb dist lint
+.PHONY: clean distclean animation_headers dist install rpm deb pacman lint $(TMP_INSTALL_DIR) print_path_deb print_path_rpm print_path_pkg
 
 MKDIR_P ?= mkdir -p
