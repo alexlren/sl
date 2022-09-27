@@ -4,20 +4,22 @@ This program is a clone of the original [SL](https://github.com/mtoyoda/sl).
 
 SL (Steam Locomotive) runs across your terminal when you type "sl" as you meant to type "ls". It's just a joke command, and not useful at all.
 
-After installing the package, you should be able to type `sl` and at least see the following or a random animation:
+After installing the package, you should be able to type `sl` and at least see a random animation.
+
+Note that unlike the original SL, animations are built using a small animation compiler that can transform frames into a generic animation format.
 
 ## Install
 
 ### Linux packages
 
-[Packages](https://github.com/alexlren/codetest/releases/) are available in .rpm, .deb or simply as tar.gz
+[Packages](https://github.com/alexlren/sl/releases/) are available in .rpm, .deb or simply as tar.gz
 
 ### From sources
 
 Requirements:
 - ncurses >= 6
 
-Download the [sources](https://github.com/alexlren/codetest/releases/) for a given release, and simply type:
+Download the [sources](https://github.com/alexlren/sl/releases/) for a given release, and simply type:
 
 ```
 make install DESTDIR=/usr/local
