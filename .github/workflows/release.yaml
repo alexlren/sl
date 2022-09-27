@@ -39,6 +39,7 @@ jobs:
 
       - name: Create a pkg.zst
         run: |
+          sudo apt-get install -y libarchive-tools
           make pacman RELEASE=1 VERSION=$VERSION
           PKG_FILE=`make print_path_pkg RELEASE=1 VERSION=$VERSION`
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
